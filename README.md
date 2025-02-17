@@ -1,1 +1,6 @@
-# my_power_shell_prompt
+My a custom PowerShell prompt (with color)
+
+```bash
+╭─ PowerShell [E:\ML\MNISTDigitClassfication]
+╰───$
+```
