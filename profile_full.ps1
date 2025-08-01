@@ -1,75 +1,50 @@
-#### My Default ####
-
-# function prompt {
-#     $path = Split-Path -Path (Get-Location)
-#     Write-Host "┌─ " -ForegroundColor DarkBlue -NoNewline
-#     Write-Host "PowerShell" -ForegroundColor Blue -NoNewline
-#     # Write-Host "@" -ForegroundColor DarkBlue -NoNewline
-#     Write-Host " [$path]" -ForegroundColor Green -NoNewline
-#     Write-Host "`n└─$" -ForegroundColor DarkBlue -NoNewline
-#     return " "
-# }
-
-#### My Default - No Color ####
-
 function prompt {
-    $terminalWidth = $Host.UI.RawUI.WindowSize.Width
+    $hostUI = $Host.UI.RawUI
+    $terminalWidth = $hostUI.WindowSize.Width
 
-    $c1 = "╭──"
+    $prefix = "╭──"
     $logo = " PowerShell "
-    $c2 = "["
-    $path = Get-Location
-    $spacing = ""
-    $mid = ""
-    $c3 = "]"
-    $c4 = "`n╰───$"
+    $suffixStart = "["
+    $suffixEnd = "]"
+    $bottomLine = "`n╰───$"
 
-    # Corrected this line to compute combinedLength correctly
-    $combinedLength = $c1.Length + $logo.Length + $c2.Length + $path.Length + $c3.Length
+    $path = (Get-Location).Path
+    $fixedLength = $prefix.Length + $logo.Length + $suffixStart.Length + $suffixEnd.Length
 
-    if ($combinedLength -gt $terminalWidth) {
-        # Adjust the path to fit in the terminal width
-        $excessLength = $combinedLength - $terminalWidth
-        $mid = ($c1 + $logo + $c2 + $path).Substring($terminalWidth - 1)
-        $path = $path.Substring(0, $path.Length - $excessLength)
-        $spacing = "`n│" + " " * ($logo.Length + $c2.Length + 2)
+    # Get Git branch name (if in Git repo)
+    $gitBranch = ""
+    try {
+        $gitStatus = git -C $path rev-parse --abbrev-ref HEAD 2>$null
+        if ($LASTEXITCODE -eq 0) {
+            $gitBranch = " ($gitStatus)"
+            $fixedLength += $gitBranch.Length
+        }
+    } catch {
+        # Not in a git repo or git not installed
     }
 
-    # Use Write-Host to print each part with specific colors
-    Write-Host $c1 -ForegroundColor Blue -NoNewline
-    Write-Host $logo -ForegroundColor Blue -NoNewline
-    Write-Host $c2 -ForegroundColor Blue -NoNewline
-    Write-Host $path -ForegroundColor Green -NoNewline
-    if ($mid) {
-        Write-Host $spacing -ForegroundColor Blue -NoNewline
-        Write-Host $mid -ForegroundColor Blue -NoNewline
+    $availablePathLength = $terminalWidth - $fixedLength
+
+    if ($path.Length -gt $availablePathLength) {
+        if ($availablePathLength -gt 3) {
+            $shortPath = "..." + $path.Substring($path.Length - ($availablePathLength - 3))
+        } else {
+            $shortPath = "..."
+        }
+    } else {
+        $shortPath = $path
     }
-    Write-Host $c3 -ForegroundColor Blue -NoNewline
-    Write-Host $c4 -ForegroundColor Blue -NoNewline
+
+    # Prompt line
+    Write-Host "$prefix$logo$suffixStart" -ForegroundColor Blue -NoNewline
+    Write-Host $shortPath -ForegroundColor Green -NoNewline
+    Write-Host $suffixEnd -ForegroundColor Blue -NoNewline
+
+    if ($gitBranch) {
+        Write-Host $gitBranch -ForegroundColor Yellow -NoNewline
+    }
+
+    Write-Host $bottomLine -ForegroundColor Blue -NoNewline
 
     return " "
 }
-
-
-
-#### Kali Theme ####
-
-# function prompt {
-#     $path = Get-Location
-#     Write-Host "┌─ " -ForegroundColor DarkBlue -NoNewline
-#     Write-Host "PowerShell" -ForegroundColor Blue -NoNewline
-#     Write-Host " [$path]" -ForegroundColor Green -NoNewline
-#     Write-Host "`n└─$" -ForegroundColor DarkBlue -NoNewline
-#     return " "
-# }
-
-#### With Backgrounnd Color Applied ####
-
-# function prompt {
-#     $path = Split-Path -Path (Get-Location)
-#     Write-Host "┌─" -ForegroundColor DarkBlue -NoNewline
-#     Write-Host " PowerShell " -BackgroundColor DarkBlue -ForegroundColor Black -NoNewline
-#     Write-Host " $path " -BackgroundColor Blue -ForegroundColor Black -NoNewline
-#     Write-Host "`n└─$" -ForegroundColor DarkBlue -NoNewline
-#     return " "
-# }
